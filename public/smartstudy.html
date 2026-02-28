@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartStudy - Ứng dụng Học Tập Cùng AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .nav-active { background-color: #1e40af; color: white; }
+        .modal { animation: modalPop 0.3s ease-out; }
+        @keyframes modalPop {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .card-hover { transition: all 0.3s; }
+        .card-hover:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); }
+        .progress-bar { transition: width 1s ease-in-out; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="w-72 bg-white border-r border-slate-200 flex flex-col">
+            <div class="p-6 border-b border-slate-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl">📚</div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-blue-700">SmartStudy</h1>
+                        <p class="text-xs text-slate-500 -mt-1">Học tập thông minh</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4">
+                <div class="bg-blue-50 rounded-3xl p-4 mb-6">
+                    <div class="flex items-center gap-3">
+                        <img src="https://i.pravatar.cc/48?u=chi" class="w-12 h-12 rounded-2xl" alt="Chi">
+                        <div>
+                            <p class="font-semibold">Chào Chi!</p>
+                            <p class="text-sm text-slate-500">Khối D01 • Mục tiêu: ĐH Thương Mại</p>
+                            <p class="text-xs text-emerald-600 font-medium">Toán yếu • Cần cân bằng</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex-1 px-3 space-y-1 overflow-y-auto">
+                <a onclick="showSection('dashboard')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-600 hover:bg-slate-100 cursor-pointer nav-active" id="nav-dashboard">
+                    <i class="fa-solid fa-house w-5"></i>
+                    <span class="font-medium">Trang chủ</span>
+                </a>
+                <a onclick="showSection('schedule')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-600 hover:bg-slate-100 cursor-pointer" id="nav-schedule">
+                    <i class="fa-solid fa-calendar-days w-5"></i>
+                    <span class="font-medium">Lịch học</span>
+                </a>
+                <a onclick="showSection('lessons')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-600 hover:bg-slate-100 cursor-pointer" id="nav-lessons">
+                    <i class="fa-solid fa-book-open w-5"></i>
+                    <span class="font-medium">Bài học & Video</span>
+                </a>
+                <a onclick="showSection('quiz')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-600 hover:bg-slate-100 cursor-pointer" id="nav-quiz">
+                    <i class="fa-solid fa-clipboard-question w-5"></i>
+                    <span class="font-medium">Bài kiểm tra</span>
+                </a>
+                <a onclick="showSection('game')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-600 hover:bg-slate-100 cursor-pointer" id="nav-game">
+                    <i class="fa-solid fa-gamepad w-5"></i>
+                    <span class="font-medium">Trò chơi ôn tập</span>
+                </a>
+                <a onclick="showSection('evaluate')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-600 hover:bg-slate-100 cursor-pointer" id="nav-evaluate">
+                    <i class="fa-solid fa-star w-5"></i>
+                    <span class="font-medium">Đánh giá buổi học</span>
+                </a>
+                <a onclick="showSection('reminder')" class="nav-item flex items-center gap-3 px-4 py-3 rounded-2xl text-slate-600 hover:bg-slate-100 cursor-pointer" id="nav-reminder">
+                    <i class="fa-solid fa-bell w-5"></i>
+                    <span class="font-medium">Nhắc nhở & Lịch</span>
+                </a>
+            </nav>
+
+            <div class="p-4 border-t border-slate-200">
+                <button onclick="randomQuiz()" 
+                        class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-3xl font-semibold flex items-center justify-center gap-2 hover:brightness-110 transition">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Quiz ngẫu nhiên động lực</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto">
+            <!-- Top Bar -->
+            <div class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+                <div class="flex items-center gap-4">
+                    <h2 id="page-title" class="text-2xl font-semibold text-slate-800">Trang chủ</h2>
+                </div>
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-2 text-sm">
+                        <div class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
+                        <span class="text-emerald-600 font-medium">Đang học Toán (yếu)</span>
+                    </div>
+                    <button onclick="toggleNotifications()" 
+                            class="flex items-center gap-2 px-5 py-2 bg-slate-100 hover:bg-slate-200 rounded-3xl text-sm font-medium transition">
+                        <i class="fa-solid fa-bell"></i>
+                        <span>Bật nhắc nhở</span>
+                    </button>
+                    <div class="w-9 h-9 bg-slate-200 rounded-2xl flex items-center justify-center cursor-pointer">
+                        <i class="fa-solid fa-user text-slate-600"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard -->
+            <div id="dashboard" class="section p-8">
+                <div class="max-w-6xl mx-auto">
+                    <div class="mb-8">
+                        <h1 class="text-4xl font-bold text-slate-800">Chào buổi tối, Chi! 🌙</h1>
+                        <p class="text-slate-600 mt-2 text-lg">Hôm nay chúng ta sẽ cân bằng Toán - Văn - Anh. Tập trung Toán trước nhé!</p>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-6">
+                        <!-- Quick stats -->
+                        <div class="bg-white rounded-3xl p-6 card-hover border border-slate-100">
+                            <div class="flex justify-between">
+                                <div>
+                                    <p class="text-slate-500 text-sm">Tiến độ tuần này</p>
+                                    <p class="text-4xl font-bold text-blue-600 mt-2">68%</p>
+                                </div>
+                                <i class="fa-solid fa-chart-line text-4xl text-blue-200"></i>
+                            </div>
+                            <div class="h-2 bg-slate-100 rounded-full mt-6 overflow-hidden">
+                                <div class="h-2 bg-blue-600 rounded-full w-[68%]"></div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-3xl p-6 card-hover border border-slate-100">
+                            <div class="flex justify-between">
+                                <div>
+                                    <p class="text-slate-500 text-sm">Môn yếu hôm nay</p>
+                                    <p class="text-3xl font-semibold text-amber-600 mt-1">Toán</p>
+                                </div>
+                                <i class="fa-solid fa-square-root-variable text-5xl text-amber-100"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-3xl p-6 card-hover border border-slate-100 flex flex-col justify-between">
+                            <div>
+                                <p class="text-slate-500 text-sm">Thời gian học hôm nay</p>
+                                <p class="text-4xl font-bold mt-1">2h 15p</p>
+                            </div>
+                            <button onclick="showSection('schedule')" 
+                                    class="mt-4 text-blue-600 text-sm font-medium flex items-center gap-2">
+                                Xem lịch chi tiết <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Today's plan -->
+                    <div class="mt-8 bg-white rounded-3xl p-8">
+                        <h3 class="font-semibold text-xl mb-6 flex items-center gap-3">
+                            <span>📅 Kế hoạch tối nay (Thứ 5)</span>
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex gap-6 items-center bg-slate-50 rounded-2xl p-5">
+                                <div class="w-20 text-right">
+                                    <p class="font-mono text-xl font-bold text-slate-400">18:00</p>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-semibold">Toán - Đạo hàm & Ứng dụng (45 phút)</p>
+                                    <p class="text-sm text-slate-500">Tập trung môn yếu trước</p>
+                                </div>
+                                <div class="text-emerald-500 text-sm font-medium">Đang ưu tiên</div>
+                            </div>
+                            <div class="flex gap-6 items-center bg-slate-50 rounded-2xl p-5">
+                                <div class="w-20 text-right">
+                                    <p class="font-mono text-xl font-bold text-slate-400">18:45</p>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-semibold text-slate-400">Nghỉ ngơi - Uống nước & đi dạo (15 phút)</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-6 items-center bg-slate-50 rounded-2xl p-5">
+                                <div class="w-20 text-right">
+                                    <p class="font-mono text-xl font-bold text-slate-400">19:00</p>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-semibold">Văn - Phân tích tác phẩm (45 phút)</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-6 items-center bg-slate-50 rounded-2xl p-5">
+                                <div class="w-20 text-right">
+                                    <p class="font-mono text-xl font-bold text-slate-400">20:00</p>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-semibold">Tiếng Anh - Reading & Vocabulary (45 phút)</p>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="startStudySession()" 
+                                class="mt-8 w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl font-semibold text-lg transition">
+                            BẮT ĐẦU BUỔI HỌC NGAY
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lịch học -->
+            <div id="schedule" class="section hidden p-8">
+                <div class="max-w-5xl mx-auto">
+                    <h2 class="text-3xl font-bold mb-8">Lịch học cá nhân hóa cho Chi</h2>
+                    
+                    <div class="bg-white rounded-3xl p-8">
+                        <h3 class="font-semibold text-xl mb-6 text-blue-700">📆 Buổi tối từ Thứ 2 đến Thứ 7</h3>
+                        <div class="grid grid-cols-7 gap-3 text-center">
+                            <div class="bg-slate-100 p-4 rounded-2xl">
+                                <p class="text-xs text-slate-500">Thứ 2</p>
+                                <p class="font-medium text-sm mt-1">Toán 45p + Văn 45p + Anh 45p</p>
+                            </div>
+                            <!-- Tương tự cho các ngày khác -->
+                            <div class="bg-slate-100 p-4 rounded-2xl">
+                                <p class="text-xs text-slate-500">Thứ 3</p>
+                                <p class="font-medium text-sm mt-1">Toán 60p + Văn 30p + Anh 45p</p>
+                            </div>
+                            <div class="bg-slate-100 p-4 rounded-2xl">
+                                <p class="text-xs text-slate-500">Thứ 4</p>
+                                <p class="font-medium text-sm mt-1">Toán 45p + Văn 45p + Anh 45p</p>
+                            </div>
+                            <div class="bg-blue-600 text-white p-4 rounded-2xl">
+                                <p class="text-xs">Thứ 5</p>
+                                <p class="font-medium text-sm mt-1">Toán 50p + Văn 40p + Anh 40p</p>
+                            </div>
+                            <div class="bg-slate-100 p-4 rounded-2xl">
+                                <p class="text-xs text-slate-500">Thứ 6</p>
+                                <p class="font-medium text-sm mt-1">Toán 45p + Văn 45p + Anh 45p</p>
+                            </div>
+                            <div class="bg-slate-100 p-4 rounded-2xl">
+                                <p class="text-xs text-slate-500">Thứ 7</p>
+                                <p class="font-medium text-sm mt-1">Toán 60p + Ôn tập 45p</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-10">
+                            <h3 class="font-semibold text-xl mb-6 text-blue-700">🌞 Chủ Nhật - Kế hoạch cả ngày</h3>
+                            <div class="space-y-6">
+                                <div class="flex items-start gap-8">
+                                    <div class="w-28 shrink-0">
+                                        <p class="font-mono text-xl">08:00 - 10:00</p>
+                                        <p class="text-xs text-emerald-600">Toán thực hành</p>
+                                    </div>
+                                    <div class="flex-1 pt-2">
+                                        <p class="font-medium">Giải 20 bài tập đạo hàm + tích phân</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-8">
+                                    <div class="w-28 shrink-0">
+                                        <p class="font-mono text-xl">10:30 - 12:00</p>
+                                        <p class="text-xs text-emerald-600">Văn</p>
+                                    </div>
+                                    <div class="flex-1 pt-2">
+                                        <p class="font-medium">Phân tích "Sóng" - Xuân Quỳnh + viết đoạn văn</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-8">
+                                    <div class="w-28 shrink-0">
+                                        <p class="font-mono text-xl">14:00 - 15:30</p>
+                                        <p class="text-xs text-emerald-600">Tiếng Anh</p>
+                                    </div>
+                                    <div class="flex-1 pt-2">
+                                        <p class="font-medium">Unit 7: A.I - Reading + Listening</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-8">
+                                    <div class="w-28 shrink-0">
+                                        <p class="font-mono text-xl">16:00 - 17:00</p>
+                                        <p class="text-xs text-rose-500">Trò chơi ôn tập</p>
+                                    </div>
+                                    <div class="flex-1 pt-2">
+                                        <p class="font-medium">Chơi game để củng cố kiến thức</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bài học & Video -->
+            <div id="lessons" class="section hidden p-8">
+                <div class="max-w-5xl mx-auto">
+                    <h2 class="text-3xl font-bold mb-8">Bài học & Video giảng bài</h2>
+                    
+                    <div class="grid grid-cols-3 gap-6">
+                        <!-- Toán -->
+                        <div class="bg-white rounded-3xl overflow-hidden card-hover">
+                            <div class="h-48 bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-7xl">📐</div>
+                            <div class="p-6">
+                                <h3 class="font-bold text-xl">Toán 12</h3>
+                                <p class="text-slate-500 text-sm mt-1">Chương: Ứng dụng đạo hàm</p>
+                                <button onclick="playVideo('toan')" 
+                                        class="mt-6 w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-medium">
+                                    Xem video bài giảng
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Văn -->
+                        <div class="bg-white rounded-3xl overflow-hidden card-hover">
+                            <div class="h-48 bg-gradient-to-br from-purple-400 to-violet-500 flex items-center justify-center text-7xl">📖</div>
+                            <div class="p-6">
+                                <h3 class="font-bold text-xl">Ngữ Văn 12</h3>
+                                <p class="text-slate-500 text-sm mt-1">Tác phẩm: Giá trị của văn học</p>
+                                <button onclick="playVideo('van')" 
+                                        class="mt-6 w-full py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-2xl font-medium">
+                                    Xem video bài giảng
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Anh -->
+                        <div class="bg-white rounded-3xl overflow-hidden card-hover">
+                            <div class="h-48 bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center text-7xl">🇬🇧</div>
+                            <div class="p-6">
+                                <h3 class="font-bold text-xl">Tiếng Anh 12</h3>
+                                <p class="text-slate-500 text-sm mt-1">Unit 1: Life stories</p>
+                                <button onclick="playVideo('anh')" 
+                                        class="mt-6 w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl font-medium">
+                                    Xem video bài giảng
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bài kiểm tra -->
+            <div id="quiz" class="section hidden p-8">
+                <div class="max-w-2xl mx-auto bg-white rounded-3xl p-8">
+                    <div id="quiz-start">
+                        <h2 class="text-3xl font-bold text-center mb-8">Bài kiểm tra cuối giờ học</h2>
+                        <div class="flex justify-center gap-4">
+                            <button onclick="startQuiz('all')" 
+                                    class="px-8 py-4 bg-slate-800 text-white rounded-3xl font-medium">Tất cả môn</button>
+                            <button onclick="startQuiz('toan')" 
+                                    class="px-8 py-4 bg-orange-500 text-white rounded-3xl font-medium">Chỉ Toán</button>
+                            <button onclick="startQuiz('van')" 
+                                    class="px-8 py-4 bg-purple-500 text-white rounded-3xl font-medium">Chỉ Văn</button>
+                            <button onclick="startQuiz('anh')" 
+                                    class="px-8 py-4 bg-blue-500 text-white rounded-3xl font-medium">Chỉ Anh</button>
+                        </div>
+                    </div>
+
+                    <div id="quiz-active" class="hidden">
+                        <div class="flex justify-between mb-8">
+                            <div class="text-sm">Câu <span id="current-q" class="font-bold">1</span>/10</div>
+                            <div id="timer" class="font-mono text-lg font-bold text-red-500">30:00</div>
+                        </div>
+                        <p id="question-text" class="text-xl font-medium mb-8"></p>
+                        <div id="options" class="space-y-3"></div>
+                        
+                        <button onclick="nextQuestion()" id="next-btn"
+                                class="hidden mt-8 w-full py-4 bg-blue-600 text-white rounded-3xl font-semibold">
+                            Câu tiếp theo
+                        </button>
+                    </div>
+
+                    <div id="quiz-result" class="hidden text-center">
+                        <div id="score-circle" class="mx-auto w-48 h-48 rounded-full border-8 border-emerald-200 flex items-center justify-center text-6xl font-bold mb-6"></div>
+                        <p id="result-text" class="text-2xl font-semibold"></p>
+                        <button onclick="restartQuiz()" 
+                                class="mt-10 px-10 py-4 bg-slate-800 text-white rounded-3xl">
+                            Làm lại
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trò chơi ôn tập -->
+            <div id="game" class="section hidden p-8">
+                <div class="max-w-2xl mx-auto bg-white rounded-3xl p-10 text-center">
+                    <div class="text-8xl mb-6">🎮</div>
+                    <h2 class="text-4xl font-bold mb-3">Trò chơi ôn tập nhanh</h2>
+                    <p class="text-slate-500 mb-10">Speed Match - Trả lời đúng càng nhanh càng được nhiều điểm!</p>
+                    
+                    <button onclick="startGame()" 
+                            class="px-16 py-6 bg-gradient-to-r from-pink-500 to-violet-500 text-white text-2xl font-bold rounded-3xl shadow-lg">
+                        BẮT ĐẦU CHƠI
+                    </button>
+                    
+                    <div id="game-area" class="hidden mt-12">
+                        <p id="game-question" class="text-2xl font-medium mb-8"></p>
+                        <div id="game-options" class="grid grid-cols-2 gap-4"></div>
+                        <div class="mt-8 text-sm text-slate-400">Điểm: <span id="game-score" class="font-bold text-2xl text-violet-600">0</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Đánh giá -->
+            <div id="evaluate" class="section hidden p-8">
+                <div class="max-w-xl mx-auto bg-white rounded-3xl p-10">
+                    <h2 class="text-3xl font-bold text-center mb-8">Đánh giá buổi học hôm nay</h2>
+                    <div class="space-y-8">
+                        <div>
+                            <p class="text-sm text-slate-500 mb-3">Bạn hiểu bài hôm nay bao nhiêu?</p>
+                            <input type="range" id="understand" min="1" max="5" value="4" class="w-full accent-blue-600">
+                            <div class="flex justify-between text-xs text-slate-400 mt-1">
+                                <span>1 - Chưa hiểu</span>
+                                <span>5 - Hiểu rất rõ</span>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-sm text-slate-500 mb-3">Mức độ tập trung</p>
+                            <input type="range" id="focus" min="1" max="5" value="4" class="w-full accent-blue-600">
+                        </div>
+                        <div>
+                            <p class="text-sm text-slate-500 mb-3">Nhận xét của bạn</p>
+                            <textarea id="comment" rows="4" 
+                                      class="w-full border border-slate-200 rounded-3xl p-5 focus:outline-none focus:border-blue-300"
+                                      placeholder="Hôm nay mình đã cố gắng hơn với Toán..."></textarea>
+                        </div>
+                        <button onclick="submitEvaluation()" 
+                                class="w-full py-5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-3xl">
+                            Gửi đánh giá &amp; lưu tiến độ
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nhắc nhở -->
+            <div id="reminder" class="section hidden p-8">
+                <div class="max-w-4xl mx-auto">
+                    <h2 class="text-3xl font-bold mb-8">Cài đặt nhắc nhở &amp; Đồng bộ Lịch</h2>
+                    
+                    <div class="grid grid-cols-2 gap-8">
+                        <div class="bg-white rounded-3xl p-8">
+                            <h3 class="font-semibold mb-6">📱 Hướng dẫn đồng bộ vào Google Calendar / Apple Calendar</h3>
+                            <ol class="space-y-6 text-slate-600">
+                                <li class="flex gap-4">
+                                    <span class="bg-blue-100 text-blue-600 w-6 h-6 rounded-xl flex items-center justify-center text-sm font-bold">1</span>
+                                    <div>Mở ứng dụng Lịch trên điện thoại</div>
+                                </li>
+                                <li class="flex gap-4">
+                                    <span class="bg-blue-100 text-blue-600 w-6 h-6 rounded-xl flex items-center justify-center text-sm font-bold">2</span>
+                                    <div>Nhấn "+" để tạo sự kiện mới</div>
+                                </li>
+                                <li class="flex gap-4">
+                                    <span class="bg-blue-100 text-blue-600 w-6 h-6 rounded-xl flex items-center justify-center text-sm font-bold">3</span>
+                                    <div>Copy lịch trên trang này và dán vào tiêu đề + thời gian</div>
+                                </li>
+                                <li class="flex gap-4">
+                                    <span class="bg-blue-100 text-blue-600 w-6 h-6 rounded-xl flex items-center justify-center text-sm font-bold">4</span>
+                                    <div>Bật nhắc nhở 10 phút trước mỗi buổi</div>
+                                </li>
+                            </ol>
+                        </div>
+                        
+                        <div class="bg-white rounded-3xl p-8">
+                            <h3 class="font-semibold mb-6">🛎️ Nhắc nhở tự động trên trình duyệt</h3>
+                            <button onclick="enableBrowserNotification()" 
+                                    class="w-full py-6 bg-slate-900 hover:bg-black text-white rounded-3xl font-medium mb-6">
+                                Bật thông báo trình duyệt
+                            </button>
+                            <p class="text-xs text-slate-500">Chúng tôi sẽ nhắc bạn mỗi tối lúc 17:50 và giữa các buổi học.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Modal -->
+    <div id="video-modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+        <div class="bg-white rounded-3xl max-w-4xl w-full mx-4 overflow-hidden modal">
+            <div class="flex justify-between items-center px-6 py-4 border-b">
+                <h3 id="modal-video-title" class="font-semibold"></h3>
+                <button onclick="closeVideoModal()" class="text-3xl leading-none text-slate-400 hover:text-slate-600">×</button>
+            </div>
+            <div class="aspect-video bg-black">
+                <iframe id="video-frame" width="100%" height="100%" 
+                        src="" frameborder="0" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tailwind script already loaded via CDN
+        function initTailwind() {
+            // No need
+        }
+
+        // Section switching
+        function showSection(section) {
+            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(section).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('nav-active'));
+            document.getElementById('nav-' + section).classList.add('nav-active');
+            
+            document.getElementById('page-title').textContent = {
+                'dashboard': 'Trang chủ',
+                'schedule': 'Lịch học',
+                'lessons': 'Bài học & Video',
+                'quiz': 'Bài kiểm tra',
+                'game': 'Trò chơi ôn tập',
+                'evaluate': 'Đánh giá buổi học',
+                'reminder': 'Nhắc nhở'
+            }[section];
+        }
+
+        // Video modal
+        let currentVideo = '';
+        function playVideo(subject) {
+            const modal = document.getElementById('video-modal');
+            const frame = document.getElementById('video-frame');
+            const titleEl = document.getElementById('modal-video-title');
+            
+            let url = '';
+            let title = '';
+            
+            if (subject === 'toan') {
+                url = 'https://www.youtube.com/watch?v=C64H0h3qiRc';
+                title = 'Toán 12 - Tính đơn điệu và cực trị của hàm số';
+            } else if (subject === 'van') {
+                url = 'https://www.youtube.com/watch?v=MHJg9Tn1NpM';
+                title = 'Ngữ Văn 12 - Giá trị của văn học';
+            } else if (subject === 'anh') {
+                url = 'https://www.youtube.com/watch?v=ceJzmgPM0r4&t=9s';
+                title = 'Tiếng Anh 12 - Life stories we admire';
+            }
+            
+            frame.src = url;
+            titleEl.textContent = title;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeVideoModal() {
+            const modal = document.getElementById('video-modal');
+            const frame = document.getElementById('video-frame');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            frame.src = ''; // stop video
+        }
+
+        // Quiz data
+        const allQuestions = {
+            toan: [
+                { q: "Nghiệm của phương trình x² - 5x + 6 = 0 là gì?", options: ["x=2 và x=3", "x=1 và x=6", "x=-2 và x=-3", "x=3 và x=-2"], correct: 0 },
+                { q: "Đạo hàm của hàm số f(x) = x³ là?", options: ["3x²", "2x", "x²", "3x"], correct: 0 },
+                { q: "Hàm số y = x² đồng biến trên khoảng nào?", options: ["(0; +∞)", "(-∞; 0)", "(-∞; +∞)", "R"], correct: 0 }
+            ],
+            van: [
+                { q: "Tác giả Truyện Kiều là ai?", options: ["Nguyễn Du", "Hồ Xuân Hương", "Tố Hữu", "Nguyễn Trãi"], correct: 0 },
+                { q: "Bài thơ 'Sóng' của tác giả nào?", options: ["Xuân Quỳnh", "Phan Thị Thanh Nhàn", "Hồ Xuân Hương", "Anh Thơ"], correct: 0 }
+            ],
+            anh: [
+                { q: "Dịch sang tiếng Anh: 'Tôi thích học Toán'", options: ["I like learning Math", "I hate Math", "I am good at Math", "Math is difficult"], correct: 0 },
+                { q: "Past tense của 'go' là gì?", options: ["went", "goed", "gone", "go"], correct: 0 }
+            ]
+        };
+
+        let currentQuizQuestions = [];
+        let currentQuestionIndex = 0;
+        let quizScore = 0;
+        let quizTimer;
+
+        function startQuiz(mode) {
+            document.getElementById('quiz-start').classList.add('hidden');
+            document.getElementById('quiz-active').classList.remove('hidden');
+            document.getElementById('quiz-result').classList.add('hidden');
+            
+            currentQuestionIndex = 0;
+            quizScore = 0;
+            
+            if (mode === 'all') {
+                currentQuizQuestions = [...allQuestions.toan, ...allQuestions.van, ...allQuestions.anh];
+            } else {
+                currentQuizQuestions = allQuestions[mode];
+            }
+            
+            // Shuffle
+            currentQuizQuestions.sort(() => Math.random() - 0.5);
+            
+            loadQuestion();
+            startQuizTimer();
+        }
+
+        function loadQuestion() {
+            const q = currentQuizQuestions[currentQuestionIndex];
+            document.getElementById('current-q').textContent = currentQuestionIndex + 1;
+            document.getElementById('question-text').textContent = q.q;
+            
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            
+            q.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left border border-slate-200 hover:border-blue-400 p-5 rounded-2xl transition";
+                btn.textContent = opt;
+                btn.onclick = () => selectAnswer(i);
+                optionsDiv.appendChild(btn);
+            });
+            
+            document.getElementById('next-btn').classList.add('hidden');
+        }
+
+        function selectAnswer(selected) {
+            const q = currentQuizQuestions[currentQuestionIndex];
+            if (selected === q.correct) quizScore++;
+            
+            // Highlight correct
+            const buttons = document.querySelectorAll('#options button');
+            buttons.forEach((btn, i) => {
+                if (i === q.correct) btn.classList.add('bg-emerald-100', 'border-emerald-400');
+                if (i === selected && i !== q.correct) btn.classList.add('bg-red-100');
+                btn.disabled = true;
+            });
+            
+            document.getElementById('next-btn').classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex >= currentQuizQuestions.length) {
+                showQuizResult();
+            } else {
+                loadQuestion();
+            }
+        }
+
+        function startQuizTimer() {
+            let timeLeft = 600; // 10 phút
+            clearInterval(quizTimer);
+            quizTimer = setInterval(() => {
+                timeLeft--;
+                const min = Math.floor(timeLeft / 60);
+                const sec = timeLeft % 60;
+                document.getElementById('timer').textContent = `${min}:${sec < 10 ? '0' : ''}${sec}`;
+                
+                if (timeLeft <= 0) showQuizResult();
+            }, 1000);
+        }
+
+        function showQuizResult() {
+            clearInterval(quizTimer);
+            document.getElementById('quiz-active').classList.add('hidden');
+            const resultDiv = document.getElementById('quiz-result');
+            resultDiv.classList.remove('hidden');
+            
+            const percent = Math.round((quizScore / currentQuizQuestions.length) * 100);
+            const circle = document.getElementById('score-circle');
+            circle.style.background = `conic-gradient(#10b981 ${percent * 3.6}deg, #e2e8f0 0deg)`;
+            circle.innerHTML = `<span class="text-6xl font-bold text-emerald-600">${percent}<span class="text-2xl">%</span></span>`;
+            
+            let comment = '';
+            if (percent >= 80) comment = 'Xuất sắc! Bạn đang tiến bộ rất nhanh 💪';
+            else if (percent >= 60) comment = 'Tốt! Hãy tiếp tục ôn Toán nhé';
+            else comment = 'Cần cố gắng hơn. Chúng ta sẽ tăng thời gian Toán lên!';
+            
+            document.getElementById('result-text').innerHTML = comment;
+        }
+
+        function restartQuiz() {
+            document.getElementById('quiz-start').classList.remove('hidden');
+            document.getElementById('quiz-result').classList.add('hidden');
+        }
+
+        // Random quiz
+        function randomQuiz() {
+            const allQ = [...allQuestions.toan, ...allQuestions.van, ...allQuestions.anh];
+            const randomQs = allQ.sort(() => 0.5 - Math.random()).slice(0, 3);
+            
+            alert(`🎉 Quiz ngẫu nhiên động lực!\n\n1. ${randomQs[0].q}\n\nTrả lời nhanh và ghi nhớ nhé!\n\nBạn làm rất tốt hôm nay!`);
+            // In real app could open mini quiz modal
+        }
+
+        // Game
+        let gameScore = 0;
+        let gameQuestions = [];
+        
+        function startGame() {
+            document.getElementById('game-area').classList.remove('hidden');
+            gameScore = 0;
+            document.getElementById('game-score').textContent = '0';
+            
+            gameQuestions = [...allQuestions.toan, ...allQuestions.van, ...allQuestions.anh].sort(() => Math.random() - 0.5);
+            loadGameQuestion(0);
+        }
+
+        function loadGameQuestion(index) {
+            if (index >= gameQuestions.length) {
+                alert(`🏆 Kết thúc trò chơi! Điểm của bạn: ${gameScore} ⭐`);
+                return;
+            }
+            
+            const q = gameQuestions[index];
+            document.getElementById('game-question').textContent = q.q;
+            
+            const optsDiv = document.getElementById('game-options');
+            optsDiv.innerHTML = '';
+            
+            q.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = "py-6 text-lg border border-slate-200 hover:border-violet-400 rounded-3xl transition";
+                btn.textContent = opt;
+                btn.onclick = () => {
+                    if (i === q.correct) {
+                        gameScore += 10;
+                        document.getElementById('game-score').textContent = gameScore;
+                        btn.classList.add('bg-emerald-100');
+                    } else {
+                        btn.classList.add('bg-red-100');
+                    }
+                    setTimeout(() => loadGameQuestion(index + 1), 800);
+                };
+                optsDiv.appendChild(btn);
+            });
+        }
+
+        // Evaluation
+        function submitEvaluation() {
+            const understand = document.getElementById('understand').value;
+            const focus = document.getElementById('focus').value;
+            const comment = document.getElementById('comment').value;
+            
+            alert(`✅ Đánh giá đã được lưu!\nHiểu bài: ${understand}/5\nTập trung: ${focus}/5\n\nCảm ơn Chi! Tiến bộ của bạn thật tuyệt vời!`);
+            
+            // Reset form
+            document.getElementById('comment').value = '';
+        }
+
+        // Notifications
+        function enableBrowserNotification() {
+            if ("Notification" in window) {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        new Notification("SmartStudy", {
+                            body: "Nhắc nhở: Buổi học tối hôm nay bắt đầu lúc 18:00. Tập trung Toán trước nhé!",
+                            icon: "https://i.pravatar.cc/128?u=smartstudy"
+                        });
+                        alert("✅ Đã bật thông báo thành công! Bạn sẽ nhận nhắc nhở mỗi ngày.");
+                    }
+                });
+            }
+        }
+
+        function toggleNotifications() {
+            alert("🛎️ Nhắc nhở đã được kích hoạt!\n\nHôm nay 17:50: 'Chuẩn bị học Toán nhé Chi!'");
+        }
+
+        function startStudySession() {
+            alert("🚀 Buổi học đã bắt đầu!\n\nNhớ nghỉ ngơi giữa giờ và giữ động lực nhé!");
+            showSection('lessons');
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === "/" && document.activeElement.tagName !== "TEXTAREA" && document.activeElement.tagName !== "INPUT") {
+                e.preventDefault();
+                randomQuiz();
+            }
+        });
+
+        // Initialize
+        window.onload = function() {
+            showSection('dashboard');
+            
+            // Fake progress animation
+            console.log('%cSmartStudy sẵn sàng hỗ trợ Chi chinh phục kỳ thi THPTQG! 💪', 'color: #1e40af; font-size: 13px');
+        };
+    </script>
+    <!-- SMART AI PANEL -->
+    <div class="ai-panel">
+
+        <div class="ai-title">
+            🤖 Trợ lý học tập SmartStudy
+        </div>
+
+        <div id="chatBox" class="ai-chat"></div>
+
+        <div class="ai-input">
+            <input id="prompt"
+                placeholder="Hỏi AI về việc học của bạn..." />
+            <button id="sendBtn">Gửi</button>
+        </div>
+
+    </div>
+</body>
+</html>
+
+<script src="app.js"></script>

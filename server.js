@@ -3,6 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+import db from "./database/database.js";
+import knowledgeRoutes from "./routes/knowledge.js";
 import chat from "./routes/chat.js";
 import journal from "./routes/journal.js";
 
@@ -25,7 +27,7 @@ const model = genAI.getGenerativeModel({
 /* =====================
    MIDDLEWARE
 ===================== */
-
+app.use("/knowledge", knowledgeRoutes);
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
@@ -48,8 +50,45 @@ app.post("/api/ai", async (req, res) => {
 
         const { prompt } = req.body;
 
+        // lấy journal
+        const notes = await new Promise((resolve, reject) => {
+
+            db.all(
+                "SELECT content FROM journal ORDER BY id DESC LIMIT 5",
+                [],
+                (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows);
+                }
+            );
+
+        });
+
+        const historyText =
+            notes.map(n => "- " + n.content).join("\n");
+
+        /* ======================
+           SYSTEM CONTEXT
+        ====================== */
+
+        const fullPrompt = `
+Bạn là SmartStudy AI — trợ lý học tập cá nhân.
+
+Thông tin học tập gần đây của người dùng:
+${historyText}
+
+Nhiệm vụ:
+- Phân tích tình hình học tập
+- Đưa lời khuyên cụ thể
+- Trả lời sâu, thực tế
+- Không trả lời chung chung
+
+Câu hỏi:
+${prompt}
+`;
+
         const result =
-            await model.generateContent(prompt);
+            await model.generateContent(fullPrompt);
 
         const response =
             await result.response;

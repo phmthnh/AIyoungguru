@@ -8,7 +8,6 @@ router.post("/", async (req,res)=>{
 
 const {message} = req.body;
 
-// 🔹 Lấy 5 journal gần nhất
 const journals =
 db.prepare(
 "SELECT content FROM journal ORDER BY id DESC LIMIT 5"
@@ -19,8 +18,6 @@ const memory = journals.map(j=>j.content).join("\n");
 const systemPrompt = `
 You are SmartStudy AI Tutor.
 
-You must personalize advice based on user's study journal.
-
 Recent journals:
 ${memory}
 
@@ -30,7 +27,7 @@ Be motivating and adaptive.
 try{
 
 const response = await fetch(
-`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_KEY}`,
+`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
 {
 method:"POST",
 headers:{

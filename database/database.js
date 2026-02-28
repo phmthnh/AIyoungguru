@@ -1,13 +1,16 @@
-import Database from "better-sqlite3";
+import sqlite3 from "sqlite3";
 
-const db = new Database("smartstudy.db");
+const db = new sqlite3.Database("./smartstudy.db");
 
-db.prepare(`
-CREATE TABLE IF NOT EXISTS journal(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    content TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+db.serialize(()=>{
+
+db.run(`
+CREATE TABLE IF NOT EXISTS knowledge(
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+content TEXT
 )
-`).run();
+`);
+
+});
 
 export default db;
